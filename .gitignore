@@ -1,0 +1,11 @@
+.idea
+.idea
+.metals
+project/.bloop
+.bloop
+.bsp
+target
+project/project
+project/target
+**/.DS_Store
+db.db
