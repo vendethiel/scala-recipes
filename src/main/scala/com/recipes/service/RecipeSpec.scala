@@ -15,7 +15,16 @@ final case class RecipeSpec(
 ) {
   def asModel(id: Int): Recipe =
     val now = java.time.LocalDateTime.now.toString
-    Recipe(id = id, title = title, makingTime = makingTime, serves = serves, ingredients = ingredients, cost = cost, createdAt = now, updatedAt = now)
+    Recipe(
+      id = id,
+      title = title,
+      makingTime = makingTime,
+      serves = serves,
+      ingredients = ingredients,
+      cost = cost,
+      createdAt = now,
+      updatedAt = now,
+    )
 }
 
 object RecipeSpec:
@@ -29,4 +38,4 @@ object RecipeSpec:
     } yield RecipeSpec(title, makingTime, serves, ingredients, cost)
   }
 
-  given [F[_] : Concurrent]: EntityDecoder[F, RecipeSpec] = jsonOf
+  given [F[_]: Concurrent]: EntityDecoder[F, RecipeSpec] = jsonOf

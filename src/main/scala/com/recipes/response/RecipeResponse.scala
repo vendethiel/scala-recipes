@@ -27,4 +27,3 @@ object RecipeResponse:
     ingredients = recipe.ingredients,
     cost = recipe.cost,
   )
-

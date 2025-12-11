@@ -2,7 +2,7 @@ package com.recipes.model
 
 import cats.effect.Concurrent
 import io.circe.{Decoder, Encoder}
-import org.http4s.circe.{jsonOf, jsonEncoderOf}
+import org.http4s.circe.{jsonEncoderOf, jsonOf}
 import org.http4s.{EntityDecoder, EntityEncoder}
 
 final case class Recipe(
@@ -13,13 +13,13 @@ final case class Recipe(
   ingredients: String,
   cost: Int,
   createdAt: String,
-  updatedAt: String
+  updatedAt: String,
 )
 
 object Recipe:
   given Decoder[Recipe] = Decoder.derived[Recipe]
 
-  given [F[_] : Concurrent]: EntityDecoder[F, Recipe] = jsonOf
+  given [F[_]: Concurrent]: EntityDecoder[F, Recipe] = jsonOf
 
   given Encoder[Recipe] = Encoder.AsObject.derived[Recipe]
 

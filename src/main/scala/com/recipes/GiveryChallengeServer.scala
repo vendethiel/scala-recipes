@@ -23,7 +23,7 @@ object GiveryChallengeServer:
       config
     })
 
-  def errorHandler(prefix: String)(t: Throwable, msg: => String) : IO[Unit] =
+  def errorHandler(prefix: String)(t: Throwable, msg: => String): IO[Unit] =
     IO.println(s"[$prefix]: $msg") >>
       IO.println(t) >>
       IO(t.printStackTrace())
@@ -44,13 +44,14 @@ object GiveryChallengeServer:
           ErrorAction.log(
             httpApp,
             messageFailureLogAction = errorHandler("message failure: "),
-            serviceErrorLogAction = errorHandler("service error: ")
-          )
-        )
+            serviceErrorLogAction = errorHandler("service error: "),
+          ),
+        ),
       )
 
-      _ <- 
-        EmberServerBuilder.default[IO]
+      _ <-
+        EmberServerBuilder
+          .default[IO]
           .withHost(ipv4"0.0.0.0")
           .withPort(port"8182")
           .withHttpApp(finalHttpApp)
