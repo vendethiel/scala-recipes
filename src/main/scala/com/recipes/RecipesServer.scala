@@ -13,7 +13,7 @@ import org.http4s.server.middleware.ErrorAction
 import org.http4s.server.middleware.ErrorHandling
 import org.http4s.server.middleware.Logger
 
-object GiveryChallengeServer:
+object RecipesServer:
 
   private def db: Resource[IO, HikariTransactor[IO]] =
     HikariTransactor.fromHikariConfig({
@@ -35,7 +35,7 @@ object GiveryChallengeServer:
       recipeAlg = Recipes.impl(repository)
 
       httpApp = (
-        GiveryChallengeRoutes.recipeRoutes(recipeAlg)
+        RecipesRoutes.recipeRoutes(recipeAlg)
       ).orNotFound
 
       // With Middlewares in place

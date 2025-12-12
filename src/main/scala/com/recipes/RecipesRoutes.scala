@@ -9,7 +9,7 @@ import org.http4s.HttpRoutes
 import org.http4s.circe.CirceEntityCodec.circeEntityEncoder
 import org.http4s.dsl.Http4sDsl
 
-object GiveryChallengeRoutes:
+object RecipesRoutes:
 
   def recipeRoutes(J: Recipes): HttpRoutes[IO] =
     val dsl = new Http4sDsl[IO] {}
