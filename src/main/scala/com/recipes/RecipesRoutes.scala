@@ -1,6 +1,5 @@
 package com.recipes
 
-import cats.effect.IO
 import io.circe.syntax.*
 import com.recipes.repository.RecipeNotFoundError
 import com.recipes.response.RecipeResponse
@@ -8,13 +7,15 @@ import com.recipes.spec.RecipeSpec
 import org.http4s.HttpRoutes
 import org.http4s.circe.CirceEntityCodec.circeEntityEncoder
 import org.http4s.dsl.Http4sDsl
+import cats.implicits.*
+import cats.effect.Concurrent
 
 object RecipesRoutes:
 
-  def recipeRoutes(J: Recipes): HttpRoutes[IO] =
-    val dsl = new Http4sDsl[IO] {}
+  def recipeRoutes[F[_]: Concurrent](J: Recipes[F]): HttpRoutes[F] =
+    val dsl = new Http4sDsl[F] {}
     import dsl.*
-    HttpRoutes.of[IO] {
+    HttpRoutes.of[F] {
       case GET -> Root / "recipes" =>
         for {
           recipes <- J.list
@@ -30,8 +31,8 @@ object RecipesRoutes:
               Ok(
                 Map(
                   "message" -> "Recipe details by id".asJson,
-                  "recipe" -> Seq(RecipeResponse.fromModel(recipe)).asJson
-                )
+                  "recipe" -> Seq(RecipeResponse.fromModel(recipe)).asJson,
+                ),
               )
           }
         } yield resp
@@ -43,8 +44,8 @@ object RecipesRoutes:
               Ok(
                 Map(
                   "message" -> "Recipe creation failed!",
-                  "required" -> "title, making_time, serves, ingredients, cost"
-                )
+                  "required" -> "title, making_time, serves, ingredients, cost",
+                ),
               )
             case Right(spec) =>
               for {
@@ -53,8 +54,8 @@ object RecipesRoutes:
                 resp <- Ok(
                   Map(
                     "message" -> "Recipe successfully created!".asJson,
-                    "recipe" -> Seq(recipe).asJson
-                  )
+                    "recipe" -> Seq(recipe).asJson,
+                  ),
                 )
               } yield resp
         }
@@ -70,14 +71,14 @@ object RecipesRoutes:
               Ok(
                 Map(
                   "message" -> "Recipe successfully updated!".asJson,
-                  "recipe" -> Seq(recipe).asJson
-                )
+                  "recipe" -> Seq(recipe).asJson,
+                ),
               )
             else
               Ok(
                 (
                   "message" -> "Recipe not found!"
-                )
+                ),
               )
         } yield resp
 
@@ -87,14 +88,14 @@ object RecipesRoutes:
           then
             Ok(
               Map(
-                "message" -> "Recipe successfully removed!"
-              )
+                "message" -> "Recipe successfully removed!",
+              ),
             )
           else
             Ok(
               Map(
-                "message" -> "No recipe found"
-              )
+                "message" -> "No recipe found",
+              ),
             )
         }
     }
