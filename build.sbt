@@ -22,6 +22,7 @@ lazy val root = (project in file("."))
       "org.tpolecat"    %% "doobie-specs2"       % DoobieVersion,
       "org.scalameta"   %% "munit"               % MunitVersion           % Test,
       "org.typelevel"   %% "munit-cats-effect"   % MunitCatsEffectVersion % Test,
+      "org.typelevel"   %% "log4cats-slf4j"      % "2.7.1",
       "ch.qos.logback"  %  "logback-classic"     % LogbackVersion         % Runtime,
     ),
     assembly / assemblyMergeStrategy := {

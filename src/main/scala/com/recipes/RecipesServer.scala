@@ -1,6 +1,5 @@
 package com.recipes
 
-import cats.effect.IO
 import cats.effect.Resource
 import com.comcast.ip4s.*
 import com.zaxxer.hikari.HikariConfig
@@ -11,11 +10,13 @@ import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.implicits.*
 import org.http4s.server.middleware.ErrorAction
 import org.http4s.server.middleware.ErrorHandling
-import org.http4s.server.middleware.Logger
+import org.http4s.server.middleware.{Logger as LoggerMiddleware}
+import cats.effect.Async
+import org.typelevel.log4cats.LoggerFactory
 
 object RecipesServer:
 
-  private def db: Resource[IO, HikariTransactor[IO]] =
+  private def db[F[_]: Async]: Resource[F, HikariTransactor[F]] =
     HikariTransactor.fromHikariConfig({
       val config = new HikariConfig()
       config.setDriverClassName("org.sqlite.JDBC")
@@ -23,35 +24,37 @@ object RecipesServer:
       config
     })
 
-  def errorHandler(prefix: String)(t: Throwable, msg: => String): IO[Unit] =
-    IO.println(s"[$prefix]: $msg") >>
-      IO.println(t) >>
-      IO(t.printStackTrace())
 
-  def run: IO[Nothing] = {
+  def errorHandler[F[_]: LoggerFactory](prefix: String) =
+    val logger = LoggerFactory[F].getLogger
+    def log(t: Throwable, msg: => String): F[Unit] =
+     logger.error(Map.empty, t)(s"[$prefix]: $msg")
+    log
+
+  def run[F[_]: Async: Network: LoggerFactory]: F[Nothing] = {
     for {
-      transactor <- db
-      repository = RecipeRepository(transactor)
-      recipeAlg = Recipes.impl(repository)
+      transactor <- db[F]
+      repository = RecipeRepository[F](transactor)
+      recipeAlg = Recipes.impl[F](repository)
 
       httpApp = (
-        RecipesRoutes.recipeRoutes(recipeAlg)
+        RecipesRoutes.recipeRoutes[F](recipeAlg)
       ).orNotFound
 
       // With Middlewares in place
-      finalHttpApp = Logger.httpApp(true, true)(
+      finalHttpApp = LoggerMiddleware.httpApp(true, true)(
         ErrorHandling.Recover.total(
           ErrorAction.log(
             httpApp,
-            messageFailureLogAction = errorHandler("message failure: "),
-            serviceErrorLogAction = errorHandler("service error: "),
+            messageFailureLogAction = errorHandler[F]("message failure: "),
+            serviceErrorLogAction = errorHandler[F]("service error: "),
           ),
         ),
       )
 
       _ <-
         EmberServerBuilder
-          .default[IO]
+          .default[F]
           .withHost(ipv4"0.0.0.0")
           .withPort(port"8182")
           .withHttpApp(finalHttpApp)
