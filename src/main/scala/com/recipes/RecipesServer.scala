@@ -10,7 +10,7 @@ import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.implicits.*
 import org.http4s.server.middleware.ErrorAction
 import org.http4s.server.middleware.ErrorHandling
-import org.http4s.server.middleware.{Logger as LoggerMiddleware}
+import org.http4s.server.middleware.Logger as LoggerMiddleware
 import cats.effect.Async
 import org.typelevel.log4cats.LoggerFactory
 
@@ -24,11 +24,10 @@ object RecipesServer:
       config
     })
 
-
   def errorHandler[F[_]: LoggerFactory](prefix: String) =
     val logger = LoggerFactory[F].getLogger
     def log(t: Throwable, msg: => String): F[Unit] =
-     logger.error(Map.empty, t)(s"[$prefix]: $msg")
+      logger.error(Map.empty, t)(s"[$prefix]: $msg")
     log
 
   def run[F[_]: Async: Network: LoggerFactory]: F[Nothing] = {
